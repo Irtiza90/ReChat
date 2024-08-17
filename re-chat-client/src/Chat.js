@@ -1,16 +1,16 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-
+import Login from './Login'; // Import the Login component
 import './echo';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
-  const [username, setUsername] = useState('');
+  const [username, setUsername] = useState(''); // Username state
   const [message, setMessage] = useState('');
-  const [page, setPage] = useState(1); // current page
+  const [page, setPage] = useState(1); // current page for pagination
   const [hasMore, setHasMore] = useState(true); // if there are more messages to load
-
-  const messagesEndRef = useRef(null); // Ref for the messages container
+  const [isSending, setIsSending] = useState(false); // track message sending state
+  const messagesEndRef = useRef(null); // ref for the messages container
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -31,7 +31,7 @@ function Chat() {
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
-  }, [page]); // `page` to dependency
+  }, [page]); // `page` dependency
 
   useEffect(() => {
     fetchMessages();
@@ -39,25 +39,17 @@ function Chat() {
     window.Echo.channel('chat')
       .listen('\\App\\Events\\MessageSent', (event) => {
         console.debug(`Message received from ${event.message.username}: ${JSON.stringify(event.message)}`);
-        // setMessages(prevMessages => [...prevMessages.slice(-99), event.message]);
-
         setMessages(prevMessages => {
-          // a Set of existing message IDs for quick lookup
           const existingMessageIds = new Set(prevMessages.map(msg => msg.id));
-          // check if the incoming message is already in the state
           if (!existingMessageIds.has(event.message.id)) {
-            // append new messages to end and trim to max 100 messages
             return [...prevMessages.slice(-99), event.message];
           }
-
           return prevMessages;
         });
       });
 
     return () => {
-      // cleanup
-      // channel.unbind_all();
-      // channel.unsubscribe();
+      // cleanup listeners
     };
   }, [page, fetchMessages]);
 
@@ -74,8 +66,14 @@ function Chat() {
     }
   };
 
-  const handleSubmit = async (e) => {
+  const handleMessageFormSubmit = async (e) => {
     e.preventDefault();
+
+    // don't send a new message if a message is already in progress
+    if (isSending) return;
+
+    // disable form during submission
+    setIsSending(true);
 
     try {
       await axios.post('http://localhost:8000/api/messages', {
@@ -83,46 +81,67 @@ function Chat() {
         message,
       });
 
-      setMessage(''); // clear the message input
-
+      setMessage(''); // Clear the message input
       await fetchMessages();
 
     } catch (error) {
       console.error('Error sending message:', error);
+
+    } finally {
+      // re-enable message sending
+      setIsSending(false);
     }
   };
 
+  const handleLogin = (username) => {
+    setUsername(username); // Set username on login
+    console.debug("Logged in as: " + username);
+  };
+
+  // If username is not set, show the login form
+  if (!username) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  const handleKeyDown = (ev) => {
+    if(ev.key === 'Enter' && !ev.shiftKey && !isSending) {
+      ev.preventDefault();
+      handleMessageFormSubmit(ev);
+    }
+  }
+
+  // Render chat interface if logged in
   return (
     <div>
-      <button onClick={loadMoreMessages} disabled={!hasMore}>
+      <button onClick={loadMoreMessages} disabled={!hasMore || isSending}>
         Load More
       </button>
-      <div style={{ minHeight: '500px', maxHeight: '500px', overflowY: 'scroll' }}>
+
+      <div style={{ minHeight: '80svh', maxHeight: '80svh', overflowY: 'scroll' }}>
         {messages.map((msg, index) => (
           <div key={index}>
-            <strong>{msg.username}</strong>: {msg.message}
+            <small>{
+              new Date(msg.created_at).toLocaleTimeString('en-GB', { hour12: false })
+            }</small> :: <small>@</small><strong>{msg.username}</strong>: {msg.message}
           </div>
         ))}
 
         {/* Scroll target */}
         <div ref={messagesEndRef} />
       </div>
-      <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="Enter your name"
+
+      <form onSubmit={handleMessageFormSubmit}>
+        <textarea
           required
-        />
-        <input
-          type="text"
           value={message}
-          onChange={(e) => setMessage(e.target.value)}
           placeholder="Enter your message"
-          required
-        />
-        <button type="submit">Send</button>
+          style={{ width: '400px', height: '50px', marginTop: '5px' }}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyUp={handleKeyDown}
+          disabled={isSending} // disable if message is in progress
+        ></textarea>
+
+        <button type="submit" disabled={isSending}>Send</button>
       </form>
     </div>
   );

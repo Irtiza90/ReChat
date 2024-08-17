@@ -43,6 +43,8 @@ class MessageBuffer
      * To prevent this we loa messages from the database and store them in the buffer.
      */
     private function getMessagesOnBufferFail(): void {
+        Log::debug('HIT: MessageBuffer::getMessagesOnBufferFail()');
+
         $messages = Message::latest()
             ->limit($this->maxMessages)
             ->get()
