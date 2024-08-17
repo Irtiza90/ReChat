@@ -76,13 +76,16 @@ function Chat() {
     setIsSending(true);
 
     try {
-      await axios.post('http://localhost:8000/api/messages', {
+      let newMessage = await axios.post('http://localhost:8000/api/messages', {
         username,
         message,
       });
 
-      setMessage(''); // Clear the message input
-      await fetchMessages();
+      console.debug('sending message: ', newMessage.data);
+      // setMessages(prevMessages => [...prevMessages.slice(-99), newMessage.data]);
+
+      // await fetchMessages();
+      setMessage(''); // clear the message input
 
     } catch (error) {
       console.error('Error sending message:', error);
@@ -122,7 +125,7 @@ function Chat() {
           <div key={index}>
             <small>{
               new Date(msg.created_at).toLocaleTimeString('en-GB', { hour12: false })
-            }</small> :: <small>@</small><strong>{msg.username}</strong>: {msg.message}
+            }</small> :: <small>@</small><strong><i>{msg.username}</i></strong>: {msg.message}
           </div>
         ))}
 

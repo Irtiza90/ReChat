@@ -43,8 +43,9 @@ class MessageController extends Controller
         // Push the new message to the buffer
         $this->messageBuffer->pushMessage($message);
 
+        // broadcast the message to all other users
         broadcast(new MessageSent($message))->toOthers();
 
-        return response()->json($message);
+        // return response()->json($message);
     }
 }
