@@ -1,6 +1,7 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
-import Pusher from 'pusher-js';
+
+import './echo';
 
 function Chat() {
   const [messages, setMessages] = useState([]);
@@ -8,6 +9,8 @@ function Chat() {
   const [message, setMessage] = useState('');
   const [page, setPage] = useState(1); // current page
   const [hasMore, setHasMore] = useState(true); // if there are more messages to load
+
+  const messagesEndRef = useRef(null); // Ref for the messages container
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -28,25 +31,42 @@ function Chat() {
     } catch (error) {
       console.error('Error fetching messages:', error);
     }
-  }, [page]); // Add `page` to dependency array
+  }, [page]); // `page` to dependency
 
   useEffect(() => {
     fetchMessages();
 
-    var pusher = new Pusher('38be918a5a51616fda91', {
-      cluster: 'ap2',
-    });
+    window.Echo.channel('chat')
+      .listen('\\App\\Events\\MessageSent', (event) => {
+        console.debug(`Message received from ${event.message.username}: ${JSON.stringify(event.message)}`);
+        // setMessages(prevMessages => [...prevMessages.slice(-99), event.message]);
 
-    const channel = pusher.subscribe('chat');
-    channel.bind('App\\Events\\MessageSent', function(data) {
-      setMessages(prevMessages => [data.message, ...prevMessages.slice(0, 99)]);
-    });
+        setMessages(prevMessages => {
+          // a Set of existing message IDs for quick lookup
+          const existingMessageIds = new Set(prevMessages.map(msg => msg.id));
+          // check if the incoming message is already in the state
+          if (!existingMessageIds.has(event.message.id)) {
+            // append new messages to end and trim to max 100 messages
+            return [...prevMessages.slice(-99), event.message];
+          }
+
+          return prevMessages;
+        });
+      });
 
     return () => {
-      channel.unbind_all();
-      channel.unsubscribe();
+      // cleanup
+      // channel.unbind_all();
+      // channel.unsubscribe();
     };
-  }, [page, fetchMessages]); // Add fetchMessages here
+  }, [page, fetchMessages]);
+
+  useEffect(() => {
+    // Scroll to the bottom when messages change
+    if (messagesEndRef.current) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages]);
 
   const loadMoreMessages = () => {
     if (hasMore) {
@@ -77,12 +97,15 @@ function Chat() {
       <button onClick={loadMoreMessages} disabled={!hasMore}>
         Load More
       </button>
-      <div>
+      <div style={{ minHeight: '500px', maxHeight: '500px', overflowY: 'scroll' }}>
         {messages.map((msg, index) => (
           <div key={index}>
             <strong>{msg.username}</strong>: {msg.message}
           </div>
         ))}
+
+        {/* Scroll target */}
+        <div ref={messagesEndRef} />
       </div>
       <form onSubmit={handleSubmit}>
         <input
