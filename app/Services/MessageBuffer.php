@@ -16,7 +16,7 @@ class MessageBuffer
         $this->buffer[] = $message;
 
         // If the buffer limit has reached, pop the first (oldest) message
-        if (count($this->getBuffer()) > $this->maxMessages) {
+        if (count($this->buffer) > $this->maxMessages) {
             array_shift($this->buffer);
         }
     }

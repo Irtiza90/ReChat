@@ -11,3 +11,7 @@ Route::get('/user', function (Request $request) {
 
 Route::get('/messages',  [MessageController::class, 'index']);
 Route::post('/messages', [MessageController::class, 'store']);
+
+Route::get('/test-broadcast', function () {
+    broadcast(new \App\Events\MessageSent(\App\Models\Message::first()));
+});

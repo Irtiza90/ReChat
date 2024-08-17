@@ -11,5 +11,9 @@ class Message extends Model
 
     protected $table = 'messages';
     protected $primaryKey = 'id';
-    protected $guarded = ['id'];
+
+    protected $guarded = [];
+    // Not using below line because weird bug with laravel:
+    // https://github.com/spatie/laravel-permission/issues/1569
+    // protected $guarded = ['id'];
 }

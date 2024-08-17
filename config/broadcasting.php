@@ -29,6 +29,11 @@ return [
     */
 
     'connections' => [
+        'redis' => [
+            'driver' => 'redis',
+            'connection' => 'pusher',
+            'retry_after' => 90,
+        ],
 
         'reverb' => [
             'driver' => 'reverb',

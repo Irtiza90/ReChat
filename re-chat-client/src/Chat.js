@@ -37,7 +37,7 @@ function Chat() {
     fetchMessages();
 
     window.Echo.channel('chat')
-      .listen('\\App\\Events\\MessageSent', (event) => {
+      .listen('.MessageSent', (event) => {
         console.debug(`Message received from ${event.message.username}: ${JSON.stringify(event.message)}`);
         setMessages(prevMessages => {
           const existingMessageIds = new Set(prevMessages.map(msg => msg.id));
