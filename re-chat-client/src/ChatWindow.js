@@ -18,12 +18,16 @@ function ChatWindow({ username }) {
   } = ChatInterface(username);
 
   return (
-    <div>
-      <button onClick={loadMoreMessages} disabled={!hasMore || isSending}>
-        Load More
-      </button>
+    <div className="flex flex-col h-screen mx-auto rounded-lg shadow-lg w-full">
+      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200" style={{ background: 'linear-gradient(45deg, black, transparent)' }}>
+        {messages.length > 0 && (
+          <button onClick={loadMoreMessages} className={`btn btn-outline mx-auto ${(hasMore ? '' : 'hidden')}`}>
+            Load More
+          </button>
+        )}
 
-      <MessageList messages={messages} messagesEndRef={messagesEndRef} />
+        <MessageList current_username={username} messages={messages} messagesEndRef={messagesEndRef} />
+      </div>
 
       <MessageForm
         message={message}

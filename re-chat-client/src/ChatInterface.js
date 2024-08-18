@@ -70,6 +70,12 @@ function useChat(username) {
 
     if (isSending) return;
 
+    setMessage(message.trim());
+
+    if (message === '') {
+      return;
+    }
+
     setIsSending(true);
 
     axiosI.post('/messages', { username, message })
@@ -87,7 +93,9 @@ function useChat(username) {
   const handleKeyDown = (ev) => {
     if (ev.key === 'Enter' && !ev.shiftKey && !isSending) {
       ev.preventDefault();
+      // ev.stopPropagation();
       handleMessageFormSubmit(ev);
+      return false;
     }
   };
 
