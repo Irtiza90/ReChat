@@ -4,7 +4,7 @@ import axios from 'axios';
 import './echo.js';
 
 const axiosI = axios.create({
-  baseURL: 'http://localhost:8000/api',
+  baseURL: process.env.REACT_APP_API_URL,
   timeout: 0,
   headers: { 'Content-Type': 'application/json' },
 });
