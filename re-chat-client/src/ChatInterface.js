@@ -1,12 +1,28 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
-import './echo.js';
+import Echo from 'laravel-echo';
+import Pusher from 'pusher-js';
 
 const axiosI = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   timeout: 0,
   headers: { 'Content-Type': 'application/json' },
+});
+
+window.Pusher = Pusher;
+
+window.Echo = new Echo({
+  broadcaster: 'pusher',
+  key: process.env.REACT_APP_PUSHER_KEY,
+  cluster: process.env.REACT_APP_PUSHER_CLUSTER,
+  forceTLS: process.env.REACT_APP_PUSHER_USE_TLS,
+  encrypted: process.env.REACT_APP_PUSHER_ENCRYPTED,  // change to true if the connection is encrypted using SSL
+  // wsHost: window.location.hostname,
+  // wsPort: 8000,
+  // wssPort: 8000,
+  disableStats: true,
+  enabledTransports: ['ws', 'wss'], // Only WebSockets, not fallback options
 });
 
 function useChat(username) {
