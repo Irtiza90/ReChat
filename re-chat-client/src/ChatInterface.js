@@ -1,28 +1,10 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
-import Echo from 'laravel-echo';
-import Pusher from 'pusher-js';
-
 const axiosI = axios.create({
   baseURL: process.env.REACT_APP_API_URL,
   timeout: 0,
   headers: { 'Content-Type': 'application/json' },
-});
-
-window.Pusher = Pusher;
-
-window.Echo = new Echo({
-  broadcaster: 'pusher',
-  key: process.env.REACT_APP_PUSHER_KEY,
-  cluster: process.env.REACT_APP_PUSHER_CLUSTER,
-  forceTLS: process.env.REACT_APP_PUSHER_USE_TLS,
-  encrypted: process.env.REACT_APP_PUSHER_ENCRYPTED,  // change to true if the connection is encrypted using SSL
-  // wsHost: window.location.hostname,
-  // wsPort: 8000,
-  // wssPort: 8000,
-  disableStats: true,
-  enabledTransports: ['ws', 'wss'], // Only WebSockets, not fallback options
 });
 
 function useChat(username) {
@@ -32,6 +14,7 @@ function useChat(username) {
   const [hasMore, setHasMore] = useState(true);
   const [isSending, setIsSending] = useState(false);
   const messagesEndRef = useRef(null);
+  const ws = useRef(null);
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -53,21 +36,40 @@ function useChat(username) {
   useEffect(() => {
     fetchMessages();
 
-    window.Echo.channel('chat').listen('.MessageSent', (event) => {
-      console.debug(`Message received from ${event.message.username}: ${JSON.stringify(event.message)}`);
+    // Connect to WebSocket server
+    ws.current = new WebSocket(`ws://localhost:8000/ws/${username}`);
+
+    ws.current.onmessage = (event) => {
+      console.debug(`Message received: ${event.data}`);
+      const response = JSON.parse(event.data);
+      const data = response.data;
       setMessages((prevMessages) => {
         const existingMessageIds = new Set(prevMessages.map((msg) => msg.id));
-        if (!existingMessageIds.has(event.message.id)) {
-          return [...prevMessages.slice(-99), event.message];
+        if (!existingMessageIds.has(data.id)) {
+          return [...prevMessages.slice(-99), data];
         }
         return prevMessages;
       });
-    });
+    };
+
+    ws.current.onopen = () => {
+      console.log('WebSocket connection established');
+    };
+
+    ws.current.onclose = () => {
+      console.log('WebSocket connection closed');
+    };
+
+    ws.current.onerror = (error) => {
+      console.error('WebSocket error:', error);
+    };
 
     return () => {
-      // cleanup listeners
+      if (ws.current) {
+        ws.current.close();
+      }
     };
-  }, [page, fetchMessages]);
+  }, [fetchMessages, username]);
 
   useEffect(() => {
     if (messagesEndRef.current) {
@@ -86,24 +88,22 @@ function useChat(username) {
 
     if (isSending) return;
 
-    setMessage(message.trim());
+    let _message = message.trim();
 
-    if (message === '') {
+    setMessage(_message);
+
+    if (_message === '') {
       return;
     }
 
-    setIsSending(true);
+    if (ws.current) {
+      setIsSending(true);
 
-    axiosI.post('/messages', { username, message })
-      .then(() => {
-        setMessage('');
-      })
-      .catch((error) => {
-        console.error('Error sending message:', error);
-      })
-      .finally(() => {
-        setIsSending(false);
-      });
+      ws.current.send(message);
+      setMessage('');
+
+      setIsSending(false);
+    }
   };
 
   const handleKeyDown = (ev) => {
