@@ -1,6 +1,6 @@
 ## ReChat
 
-ReChat - RealTime Chat Application built with React & Laravel
+ReChat - RealTime Chat Application built with React & FastApi
 
 ### How to Setup
 
@@ -14,36 +14,28 @@ cd ReChat
 
 #### Prerequisites:
 
-- php 8.2+
+- python 3.12+
 - node.js (npm)
-- composer
-- redis server
-- [pusher credentials](https://pusher.com/laravel/)
 
-This app was created in **php8.2**, with **laravel 11**, and has not been tested for lower versions.
-
-now installing the dependencies:
+##### Installing the dependencies:
 ```
-composer install
-npm install
+py -m venv ./venv
+./.venv/Scripts/activate.ps1
+py -m pip install -r requirements.txt
 
 # react dependencies
-cd re-chat-client
+cd rechat-client
 npm install
 ```
-
-Get your pusher app credentials then paste then in both .env files (/.env, /re-chat-client/.env)
 
 ### Starting the App
 (open separate terminals for each command here)
 ```
-php artisan serve
-php artisan queue:work redis
-redis-server
+py main.py
 ```
 Starting react server
 ```
-cd re-chat-client
+cd rechat-client
 npm start
 ```
 
