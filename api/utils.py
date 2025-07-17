@@ -1,4 +1,4 @@
-from app import crud
+from api import crud
 
 
 class MessageBuffer:

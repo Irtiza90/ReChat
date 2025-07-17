@@ -1,4 +1,5 @@
 from sqlalchemy import select
+from datetime import datetime, timezone
 
 from .models import users, messages
 from .database import database
@@ -13,16 +14,20 @@ async def create_user(username: str):
     return { "id": user_id, "username": username }
 
 async def create_message(user_id: int, message: str):
-    query = messages.insert().values(user_id=user_id, message=message)
+    timestamp = datetime.now(timezone.utc).isoformat()
+
+    query = messages.insert().values(
+        user_id=user_id,
+        message=message,
+    )
     message_id = await database.execute(query)
 
-    fetch_query = (
-        select(messages.c.timestamp)
-        .where(messages.c.id == message_id)
-    )
-    res = await database.fetch_one(fetch_query)
-
-    return { "id": message_id, "user_id": user_id, "message": message, "timestamp": str(res["timestamp"]) }
+    return {
+        "id": message_id,
+        "user_id": user_id,
+        "message": message,
+        "timestamp": timestamp,
+    }
 
 async def get_messages(limit: int = 10, offset: int = 0):
     query = (

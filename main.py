@@ -4,9 +4,9 @@ from fastapi import FastAPI
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.database import database
-from app.routes import router
-from app.config import Settings
+from api.database import database
+from api.routes import router
+from api.config import Settings
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):

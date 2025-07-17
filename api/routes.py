@@ -2,8 +2,8 @@ from math import ceil
 import json
 from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Query
 
-from app import crud
-from app.database import database
+from api import crud
+from api.database import database
 
 router = APIRouter()
 
