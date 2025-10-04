@@ -14,7 +14,7 @@ function Chat() {
     return <Login onLogin={handleLogin} />;
   }
 
-  return <ChatWindow username={username} />;
+  return <ChatWindow username={username} messages={[]} />;
 }
 
 export default Chat;

@@ -1,4 +1,7 @@
 from pydantic_settings import BaseSettings, SettingsConfigDict
+from pathlib import Path
+
+_ENV_PATH = Path.cwd() / ".env"
 
 
 class Settings(BaseSettings):
@@ -6,4 +9,4 @@ class Settings(BaseSettings):
     database_url: str
     react_app_url: str
 
-    model_config = SettingsConfigDict(env_file=".env")
+    model_config = SettingsConfigDict(env_file="../.env")

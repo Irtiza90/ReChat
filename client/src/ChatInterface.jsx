@@ -1,8 +1,12 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 
+const BASE_API_URL = import.meta.env.VITE_API_URL;
+const _url = new URL(BASE_API_URL);
+const SOCKET_PATH = "ws:/" + _url.host + "/ws";
+
 const axiosI = axios.create({
-  baseURL: import.meta.env.VITE_API_URL,
+  baseURL: BASE_API_URL,
   timeout: 0,
   headers: { 'Content-Type': 'application/json' },
 });
@@ -37,7 +41,7 @@ function useChat(username) {
     fetchMessages();
 
     // Connect to WebSocket server
-    ws.current = new WebSocket(`ws://localhost:8000/ws/${username}`);
+    ws.current = new WebSocket(`${SOCKET_PATH}/${username}`);
 
     ws.current.onmessage = (event) => {
       console.debug(`Message received: ${event.data}`);

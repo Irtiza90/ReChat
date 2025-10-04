@@ -1,10 +1,10 @@
 import React from 'react';
 
-function MessageList({ messages, messagesEndRef, current_username }) {
+function MessageList({ messages = [], messagesEndRef, current_username }) {
   return (
     <>
       {/* Chat messages container */}
-      {messages.map((msg, index) => (
+      {messages?.map((msg, index) => (
         <div key={index} className={`chat ${msg.user.from === current_username ? 'chat-end' : 'chat-start'}`}>
           {msg.user.from !== current_username &&
             <div className="p-2 text-gray-100 rounded-bl-sm chat-header badge badge-primary badge-md bg-primary-500">

@@ -18,9 +18,9 @@ function ChatWindow({ username }) {
   } = ChatInterface(username);
 
   return (
-    <div className="flex flex-col h-screen mx-auto rounded-lg shadow-lg w-full">
-      <div className="flex-1 overflow-y-auto p-4 space-y-3 bg-base-200" style={{ background: 'linear-gradient(45deg, black, transparent)' }}>
-        {messages.length > 0 && (
+    <div className="flex flex-col w-full h-screen mx-auto rounded-lg shadow-lg">
+      <div className="flex-1 p-4 space-y-3 overflow-y-auto bg-base-200" style={{ background: 'linear-gradient(45deg, black, transparent)' }}>
+        {messages?.length > 0 && (
           <button onClick={loadMoreMessages} className={`btn btn-outline mx-auto ${(hasMore ? '' : 'hidden')}`}>
             Load More
           </button>
